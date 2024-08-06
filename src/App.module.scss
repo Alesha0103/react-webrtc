@@ -1,0 +1,21 @@
+.chat {
+  width: 350px;
+  height: 400px;
+  background-color: aliceblue;
+}
+.messages {
+  font-size: 16px;
+  font-weight: 600;
+  color: #151515;
+  background-color: antiquewhite;
+
+  width: 90%;
+  float: right;
+  margin-bottom: 5px;
+}
+.incommingMessages {
+  float: left;
+}
+.divider {
+  border-bottom: 2px solid black;
+}

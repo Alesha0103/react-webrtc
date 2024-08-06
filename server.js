@@ -7,6 +7,8 @@ const server = http.createServer(app);
 
 const PORT = 3001;
 
+let messages = [];
+
 const io = socketIo(server, {
   cors: {
     origin: "http://localhost:3000",
@@ -18,9 +20,15 @@ io.on("connection", (socket) => {
   console.log("New client connected");
   
   socket.on("send-message", (message) => {
-    console.log("message sent :>> ", message);
-    socket.broadcast.emit("receive-message", message);
+    const messageWithId = {
+      id: socket.id,
+      text: message
+    };
+    messages.push(messageWithId);
+    socket.broadcast.emit("receive-message", messageWithId);
   });
+
+  socket.emit("socket-id", socket.id);
 
   socket.on("disconnect", () => {
     console.log("Client disconnected");

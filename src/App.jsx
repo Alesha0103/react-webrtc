@@ -2,15 +2,36 @@ import React from "react";
 import io from "socket.io-client";
 import { ACTIONS } from "./soket/actions";
 
+import styles from "./App.module.scss";
+import classNames from "classnames";
+
 const socket = io("http://localhost:3001");
 
 export const App = () => {
-  const [message, setMessage] = React.useState("");
-  const [messages, setMessages] = React.useState([]);
+  const [ clientId, setClientId ] = React.useState("");
+  const [ message, setMessage ] = React.useState("");
+  const [ messages, setMessages ] = React.useState([]);
+
+  const addDividerCheck = (messages) => {
+    let isIncommingMessage;
+    const newMessages = [...messages];
+
+    newMessages.reduce((acc, currentMessage, index, array) => {
+      if (!!index) {
+        isIncommingMessage = currentMessage.id !== array[index - 1].id;
+      }
+    }, []);
+
+    return isIncommingMessage;
+  };
 
   React.useEffect(() => {
     socket.on(ACTIONS.RECEIVE_MESSAGE, (message) => {
       setMessages((prevMessages) => [...prevMessages, message]);
+    });
+
+    socket.on(ACTIONS.SOCKET_ID, (id) => {
+      setClientId(id);
     });
 
     return () => {
@@ -19,9 +40,13 @@ export const App = () => {
   }, []);
 
   const sendMessage = () => {
-    socket.emit(ACTIONS.SEND_MESSAGE, message);
-    setMessages((prevMessages) => [...prevMessages, message]);
-    setMessage("");
+    const messageWithId = {
+      id: socket.id,
+      text: message
+    };
+    socket.emit('send-message', message);
+    setMessages((prevMessages) => [...prevMessages, messageWithId]);
+    setMessage('');
   };
 
   const handleChange = (e) => {
@@ -31,9 +56,19 @@ export const App = () => {
   return (
     <div style={{ padding: "20px" }}>
       <h1>WebRTC Chat</h1>
-      <div style={{ marginBottom: "20px" }}>
+      <div className={styles.chat}>
         {messages.map((msg, index) => (
-          <div key={index}>{msg}</div>
+          <div
+            key={msg.id+index}
+            className={classNames(
+              styles.messages,
+              { [styles.incommingMessages]: msg.id !== clientId }
+            )}
+          >
+            <span>
+              {msg.text}
+            </span>
+          </div>
         ))}
       </div>
       <input
